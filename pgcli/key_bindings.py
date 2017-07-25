@@ -2,7 +2,8 @@ import logging
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.key_binding.manager import KeyBindingManager
-from prompt_toolkit.filters import Condition
+from prompt_toolkit.key_binding.input_processor import KeyPress
+from prompt_toolkit.filters import Condition, ViInsertMode
 from .filters import HasSelectedCompletion
 
 _logger = logging.getLogger(__name__)
@@ -21,6 +22,14 @@ def pgcli_bindings(get_vi_mode_enabled, set_vi_mode_enabled):
         enable_auto_suggest_bindings=True,
         enable_search=True,
         enable_abort_and_exit_bindings=True)
+
+    @key_binding_manager.registry.add_binding('j', 'j', filter=ViInsertMode())
+    def _(event):
+        """
+        Typing 'jj' in Insert mode, should go back to navigation mode.
+        """
+        _logger.debug('Detected jj keys.')
+        event.cli.input_processor.feed(KeyPress(Keys.Escape))
 
     @key_binding_manager.registry.add_binding(Keys.F2)
     def _(event):
